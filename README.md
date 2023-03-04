@@ -15,7 +15,7 @@ A minimalist Neovim plugin for generating and editing text ChatGPT.
 For vim-plug, add this to your init.vim:
 
 ```vim
-Plug 'aduros/ai.vim'
+Plug 'mikesoylu/ai.vim'
 ```
 
 Make sure you have an environment variable called `$OPENAI_API_KEY` which you can [generate
