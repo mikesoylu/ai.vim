@@ -1,6 +1,6 @@
 # 🤖 ai.vim
 
-A minimalist Neovim plugin for generating and editing text using OpenAI and GPT.
+A minimalist Neovim plugin for generating and editing text ChatGPT.
 
 ## Features
 

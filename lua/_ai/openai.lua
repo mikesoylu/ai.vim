@@ -53,7 +53,8 @@ end
 ---@param ctx string
 ---@param on_result fun(err: string?, output: unknown?): nil
 ---@param prompt string
-function M.call (ctx, on_result, prompt)
+---@param selection string
+function M.call (ctx, on_result, prompt, selection)
     local api_key = os.getenv("OPENAI_API_KEY")
     if not api_key then
         on_result("$OPENAI_API_KEY environment variable must be set")
@@ -64,29 +65,54 @@ function M.call (ctx, on_result, prompt)
         model = "gpt-3.5-turbo",
         max_tokens = 1024,
         temperature = 0.5,
-        messages = {
-            {
-                role = "system",
-                content = "You insert text into documents. Only respond with the text that should be in <|INSERT HERE|>."
-            },
-            {
-                role = "user",
-                content = ctx
-            },
-        }
+        stop = {"<|INSERT HERE|>"},
+        messages = {}
     }
 
-    if prompt then
+    if selection then
         table.insert(body.messages, {
             role = "system",
-            content = "Instructions: " .. prompt
+            content = "You modify users text. Only respond with the text that should be in users selection."
+        })
+        table.insert(body.messages, {
+            role = "assistant",
+            content = ctx
+        })
+
+        table.insert(body.messages, {
+            role = "system",
+            content = "Selection:\n\n" .. selection
+        })
+
+        -- expect: this is always true
+        if prompt then
+            table.insert(body.messages, {
+                role = "user",
+                content = prompt
+            })
+        end
+    else
+        table.insert(body.messages, {
+            role = "system",
+            content = "You insert text into documents. Only respond with the text that should be in <|INSERT HERE|>."
+        })
+        table.insert(body.messages, {
+            role = "user",
+            content = ctx
+        })
+
+        if prompt then
+            table.insert(body.messages, {
+                role = "system",
+                content = "Instructions: " .. prompt
+            })
+        end
+
+        table.insert(body.messages, {
+            role = "assistant",
+            content = "Contents of <|INSERT HERE|>:"
         })
     end
-
-    table.insert(body.messages, {
-        role = "assistant",
-        content = "Contents of <|INSERT HERE|>:"
-    })
 
     local curl_args = {
         "-X", "POST", "--silent", "--show-error",
