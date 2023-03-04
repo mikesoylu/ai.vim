@@ -1,6 +1,6 @@
 # 🤖 ai.vim
 
-A minimalist Neovim plugin for generating and editing text using OpenAI and GPT.
+A minimalist Neovim plugin for generating and editing text with ChatGPT.
 
 ## Features
 
@@ -9,13 +9,14 @@ A minimalist Neovim plugin for generating and editing text using OpenAI and GPT.
 - Select and edit existing text in-place.
 - Easy to use interface. Just hit `<Ctrl-A>` or run `:AI <prompt>`.
 - Works with both source code and regular text.
+- Supports streaming completions and cancelling `<Ctrl-C>`.
 
 ## Installing
 
 For vim-plug, add this to your init.vim:
 
 ```vim
-Plug 'aduros/ai.vim'
+Plug 'mikesoylu/ai.vim'
 ```
 
 Make sure you have an environment variable called `$OPENAI_API_KEY` which you can [generate

@@ -95,17 +95,9 @@ CUSTOMIZING
 
         Example: `let g:ai_context_after=50`
 
-*g:ai_sign_text* (default: "🤖")
+*g:ai_temperature* (default: 0.5)
 
-        The gutter sign text used to indicate a request in-progress. If your
-        terminal can't display emojis, you'll probably want to set this.
+        Controls randomness of output, between 0 and 1. Lower values will be
+        more deterministic and higher values will take more creative risks.
 
-        Example: `let g:ai_sign_text="A"`
-
-*AISign* is the |:highlight| group to color the gutter sign text.
-
-        Example: `:highlight AISign ctermbg=red`
-
-*AIHighlight* is the |:highlight| group to color the text being processed.
-
-        Example: `:highlight AIHighlight ctermbg=green`
+        Example: `let g:ai_temperature=0.7`
