@@ -71,7 +71,7 @@ function M.ai (args)
         if err then
             vim.api.nvim_err_writeln("ai.vim: " .. err)
         else
-            local text = result.choices[1].text
+            local text = result.choices[1].message.content
             local lines = {}
             for line in text:gmatch("[^\n]+") do
                 table.insert(lines, line)
@@ -86,52 +86,29 @@ function M.ai (args)
         end
     end
 
+    local context_before = get_var("ai_context_before", 20)
+    local prefix = table.concat(vim.api.nvim_buf_get_text(buffer,
+        math.max(0, start_row-context_before), 0, start_row, start_col, {}), "\n")
+
+    local context_after = get_var("ai_context_after", 20)
+    local line_count = vim.api.nvim_buf_line_count(buffer)
+    local suffix = table.concat(vim.api.nvim_buf_get_text(buffer,
+        end_row, end_col, math.min(end_row+context_after, line_count-1), 99999999, {}), "\n")
+
     if visual_mode then
         local selected_text = table.concat(vim.api.nvim_buf_get_text(buffer, start_row, start_col, end_row, end_col, {}), "\n")
         if prompt == "" then
             -- Replace the selected text, also using it as a prompt
-            openai.call("completions", {
-                model = "text-davinci-003",
-                prompt = selected_text,
-                max_tokens = 2048,
-                temperature = 0,
-            }, on_result)
         else
             -- Edit selected text
-            openai.call("edits", {
-                model = "text-davinci-edit-001",
-                input = selected_text,
-                instruction = prompt,
-                temperature = 0,
-            }, on_result)
         end
     else
         if prompt == "" then
             -- Insert some text generated using surrounding context
-            local context_before = get_var("ai_context_before", 20)
-            local prefix = table.concat(vim.api.nvim_buf_get_text(buffer,
-                math.max(0, start_row-context_before), 0, start_row, start_col, {}), "\n")
-
-            local context_after = get_var("ai_context_after", 20)
-            local line_count = vim.api.nvim_buf_line_count(buffer)
-            local suffix = table.concat(vim.api.nvim_buf_get_text(buffer,
-                end_row, end_col, math.min(end_row+context_after, line_count-1), 99999999, {}), "\n")
-
-            openai.call("completions", {
-                model = "text-davinci-003",
-                prompt = prefix,
-                suffix = suffix,
-                max_tokens = 2048,
-                temperature = 0,
-            }, on_result)
+            openai.call(prefix .. "<|INSERT HERE|>" .. suffix, on_result)
         else
             -- Insert some text generated using the given prompt
-            openai.call("completions", {
-                model = "text-davinci-003",
-                prompt = prompt,
-                max_tokens = 2048,
-                temperature = 0,
-            }, on_result)
+            openai.call(prefix .. "<|INSERT HERE|>" .. suffix, on_result, prompt)
         end
     end
 end

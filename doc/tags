@@ -1,0 +1,10 @@
+:AI	ai.txt	/*:AI*
+<CTRL-A>	ai.txt	/*<CTRL-A>*
+AIHighlight	ai.txt	/*AIHighlight*
+AISign	ai.txt	/*AISign*
+ai.txt	ai.txt	/*ai.txt*
+ai.vim	ai.txt	/*ai.vim*
+g:ai_context_after	ai.txt	/*g:ai_context_after*
+g:ai_context_before	ai.txt	/*g:ai_context_before*
+g:ai_no_mappings	ai.txt	/*g:ai_no_mappings*
+g:ai_sign_text	ai.txt	/*g:ai_sign_text*

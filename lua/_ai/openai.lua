@@ -50,19 +50,47 @@ local function exec (cmd, args, on_result)
     end
 end
 
----@param endpoint string
----@param body table
+---@param ctx string
 ---@param on_result fun(err: string?, output: unknown?): nil
-function M.call (endpoint, body, on_result)
+---@param prompt string
+function M.call (ctx, on_result, prompt)
     local api_key = os.getenv("OPENAI_API_KEY")
     if not api_key then
         on_result("$OPENAI_API_KEY environment variable must be set")
         return
     end
 
+    local body = {
+        model = "gpt-3.5-turbo",
+        max_tokens = 1024,
+        temperature = 0.5,
+        messages = {
+            {
+                role = "system",
+                content = "You insert text into documents. Only respond with the text that should be in <|INSERT HERE|>."
+            },
+            {
+                role = "user",
+                content = ctx
+            },
+        }
+    }
+
+    if prompt then
+        table.insert(body.messages, {
+            role = "system",
+            content = "Instructions: " .. prompt
+        })
+    end
+
+    table.insert(body.messages, {
+        role = "assistant",
+        content = "Contents of <|INSERT HERE|>:"
+    })
+
     local curl_args = {
         "-X", "POST", "--silent", "--show-error",
-        "-L", "https://api.openai.com/v1/" .. endpoint,
+        "-L", "https://api.openai.com/v1/chat/completions",
         "-H", "Content-Type: application/json",
         "-H", "Authorization: Bearer " .. api_key,
         "-d", vim.json.encode(body),
