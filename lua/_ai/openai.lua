@@ -92,7 +92,7 @@ function M.call (ctx, on_result, on_content_received, prompt, selection)
     end
 
     local body = {
-        model = "gpt-3.5-turbo",
+        model = util.get_var("ai_model", "gpt-3.5-turbo"),
         max_tokens = 1024,
         temperature = util.get_var("ai_temperature", 0.5),
         stop = {"<|INSERT HERE|>"},

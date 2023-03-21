@@ -101,3 +101,10 @@ CUSTOMIZING
         more deterministic and higher values will take more creative risks.
 
         Example: `let g:ai_temperature=0.7`
+
+*g:ai_model* (default: gpt-3.5-turbo)
+
+        What model to use. Must be an OpenAI Chat API compatible model.
+        See https://platform.openai.com/docs/models/model-endpoint-compatibility
+
+        Example: `let g:ai_model=gpt-4-32k`
