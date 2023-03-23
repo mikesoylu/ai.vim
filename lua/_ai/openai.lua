@@ -88,14 +88,14 @@ function M.call (ctx, on_result, on_content_received, prompt, selection)
 
     if buffer_name ~= "" then
         buffer_name = buffer_name:match("^.+/(.+)$") or buffer_name
-        buffer_prompt = " User is editing " .. buffer_name
+        buffer_prompt = " User is editing " .. buffer_name .. ", respond in the same file format."
     end
 
     local body = {
         model = util.get_var("ai_model", "gpt-3.5-turbo"),
         max_tokens = 1024,
         temperature = util.get_var("ai_temperature", 0.5),
-        stop = {"<|INSERT HERE|>"},
+        stop = {"##complete_here##"},
         stream = true,
         messages = {}
     }
@@ -104,46 +104,42 @@ function M.call (ctx, on_result, on_content_received, prompt, selection)
         table.insert(body.messages, {
             role = "system",
             content = "You modify user's text. Follow the user's requirements carefully & to the letter. "
-                .. "Only respond with the text that should be in user's selection." .. buffer_prompt
+                .. "Only respond with the text that should be in user's selection. "
+                .. "Preserve indentation to be consistent with the surrounding content." .. buffer_prompt
         })
+
+        table.insert(body.messages, {
+            role = "user",
+            content = ctx .. "\n\n---\n\nSelection:\n\n" .. selection
+                .. "\n\n---\n\nModify selection accordingly: " .. (prompt or "improve") -- default to improve instructions
+        })
+
         table.insert(body.messages, {
             role = "assistant",
-            content = ctx
+            content = "Modified selection:"
         })
-
-        table.insert(body.messages, {
-            role = "system",
-            content = "Selection:\n\n" .. selection
-        })
-
-        -- expect: this is always true
-        if prompt then
-            table.insert(body.messages, {
-                role = "user",
-                content = "Modify selection accordingly: " .. prompt
-            })
-        end
     else
         table.insert(body.messages, {
             role = "system",
-            content = "You complete user's text. Follow the user's requirements carefully & to the letter. "
-                .. "Only respond with the text that should be in <|COMPLETE HERE|>." .. buffer_prompt
-        })
-        table.insert(body.messages, {
-            role = "user",
-            content = ctx
+            content = "You complete user's text. " .. (prompt and "Follow the user's instructions carefully & to the letter. " or "")
+                .. "Only respond with the text that should be in ##complete_here##. "
+                .. "Preserve indentation to be consistent with the surrounding content." .. buffer_prompt
         })
 
+        local content = ctx
+
         if prompt then
-            table.insert(body.messages, {
-                role = "system",
-                content = "Instructions: " .. prompt
-            })
+            content = content .. "\n\n---\n\nCompletion instructions: " .. prompt
         end
 
         table.insert(body.messages, {
+            role = "user",
+            content = content
+        })
+
+        table.insert(body.messages, {
             role = "assistant",
-            content = "Contents of <|COMPLETE HERE|>:"
+            content = "Contents of ##complete_here##:"
         })
     end
 

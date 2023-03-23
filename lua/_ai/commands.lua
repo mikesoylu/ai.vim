@@ -109,7 +109,7 @@ function M.ai (args)
         local selected_text = table.concat(vim.api.nvim_buf_get_text(buffer, start_row, start_col, end_row, end_col, {}), "\n")
         if prompt == "" then
             -- Replace the selected text, also using it as a prompt
-            openai.call(prefix .. "<|INSERT HERE|>" .. suffix, on_result, on_content_received, selected_text)
+            openai.call(prefix .. "##complete_here##" .. suffix, on_result, on_content_received, selected_text)
         else
             -- Edit selected text
             openai.call(prefix .. selected_text .. suffix, on_result, on_content_received, prompt, selected_text)
@@ -117,10 +117,10 @@ function M.ai (args)
     else
         if prompt == "" then
             -- Insert some text generated using surrounding context
-            openai.call(prefix .. "<|INSERT HERE|>" .. suffix, on_result, on_content_received)
+            openai.call(prefix .. "##complete_here##" .. suffix, on_result, on_content_received)
         else
             -- Insert some text generated using the given prompt
-            openai.call(prefix .. "<|INSERT HERE|>" .. suffix, on_result, on_content_received, prompt)
+            openai.call(prefix .. "##complete_here##" .. suffix, on_result, on_content_received, prompt)
         end
     end
 
