@@ -30,6 +30,7 @@ local function insert_text_at_cursor_mark (content)
     end
 
     -- Insert the lines one by one using nvim_buf_set_lines
+    vim.api.nvim_command('undojoin')
     vim.api.nvim_buf_set_lines(buffer, row, row + 1, true, lines)
 
     -- Update the cursor position

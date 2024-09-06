@@ -105,6 +105,7 @@ function M.call (ctx, on_result, on_content_received, prompt, selection)
             role = "system",
             content = "You modify user's text. Follow the user's requirements carefully & to the letter. "
                 .. "Only respond with the text that should be in user's selection. "
+                .. "Never wrap your response in markdown code block indicators (ie no ```). "
                 .. "Preserve indentation to be consistent with the surrounding content." .. buffer_prompt
         })
 
@@ -123,6 +124,7 @@ function M.call (ctx, on_result, on_content_received, prompt, selection)
             role = "system",
             content = "You complete user's text. " .. (prompt and "Follow the user's instructions carefully & to the letter. " or "")
                 .. "Only respond with the text that should be in ##complete_here##. "
+                .. "Never wrap your response in markdown code block indicators (ie no ```). "
                 .. "Preserve indentation to be consistent with the surrounding content." .. buffer_prompt
         })
 
