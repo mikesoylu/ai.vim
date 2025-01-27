@@ -92,17 +92,15 @@ function M.call (ctx, on_result, on_content_received, prompt, selection)
     end
 
     local body = {
-        model = util.get_var("ai_model", "gpt-3.5-turbo"),
-        max_tokens = 1024,
-        temperature = util.get_var("ai_temperature", 0.5),
-        stop = {"##complete_here##"},
+        model = util.get_var("ai_model", "o1-mini"),
+        max_completion_tokens = 8192,
         stream = true,
         messages = {}
     }
 
     if selection then
         table.insert(body.messages, {
-            role = "system",
+            role = "user",
             content = "You modify user's text. Follow the user's requirements carefully & to the letter. "
                 .. "Only respond with the text that should be in user's selection. "
                 .. "Never wrap your response in markdown code block indicators (ie no ```). "
@@ -121,7 +119,7 @@ function M.call (ctx, on_result, on_content_received, prompt, selection)
         })
     else
         table.insert(body.messages, {
-            role = "system",
+            role = "user",
             content = "You complete user's text. " .. (prompt and "Follow the user's instructions carefully & to the letter. " or "")
                 .. "Only respond with the text that should be in ##complete_here##. "
                 .. "Never wrap your response in markdown code block indicators (ie no ```). "
@@ -154,6 +152,7 @@ function M.call (ctx, on_result, on_content_received, prompt, selection)
     }
 
     local buffered_data = ""
+    local write_buffer = ""
 
     local function handle_stream_data (data)
         buffered_data = buffered_data .. data
@@ -169,15 +168,34 @@ function M.call (ctx, on_result, on_content_received, prompt, selection)
 
             vim.schedule(function ()
                 local success, json_data = pcall(vim.fn.json_decode, json_str)
+                
                 if success then
                     local content = json_data.choices[1].delta.content
 
+                    if content then
+                        write_buffer = write_buffer .. content
+                    end
+
+                    local line = write_buffer:match("[^\n]*\n")
+
+                    -- Remove unwanted markdown indicators, including ```<lang>
+                    if line then
+                        -- Remove lines starting with ```
+                        line = line:gsub("```%w*\n?", "")
+                    end
+
                     -- Call the on_content_received function with the content if it's not nil and request is not cancelled
-                    if content and not request_cancelled then
-                        on_content_received(content)
+                    if line and not request_cancelled then
+                        on_content_received(line)
+                    end
+
+                    if line then
+                      -- Remove the line from the buffer
+                      write_buffer = write_buffer:sub(#line + 1)
                     end
                 else
                     -- Handle JSON decoding errors (optional)
+                    vim.api.nvim_err_writeln("ai.vim: Error decoding JSON: " .. json_data)
                 end
             end)
 
@@ -190,6 +208,10 @@ function M.call (ctx, on_result, on_content_received, prompt, selection)
     exec_stream("curl", curl_args, handle_stream_data, function(err, output)
         AI_remove_keymap()
         if not request_cancelled then
+            if write_buffer ~= "" then
+                on_content_received(write_buffer:gsub("```%w*\n?", ""))
+            end
+
             on_result(err, output)
         end
     end)
